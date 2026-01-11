@@ -2,6 +2,7 @@
 
 export interface ScheduleCell {
   subject: string;
+  code: string;
   teacher: string;
   room: string;
   color: string;
@@ -131,22 +132,49 @@ export const commonSubjectCodes = [
 
 function generateSchedule(
   periodsPerDay: number,
-  seed: number
+  seed: number,
+  subjectList: SubjectDetail[]
 ): Record<string, ScheduleCell[]> {
   const schedule: Record<string, ScheduleCell[]> = {};
+
+  // Use user-provided subjects or fallback to global colors if list is empty
+  const availableSubjects =
+    subjectList.length > 0
+      ? subjectList
+      : [
+          {
+            id: "m1",
+            name: "คณิตศาสตร์",
+            code: "MA101",
+            credits: 3,
+            teacher: "อ.สมชาย",
+          },
+          {
+            id: "m2",
+            name: "วิทยาศาสตร์",
+            code: "SC101",
+            credits: 3,
+            teacher: "อ.สมหญิง",
+          },
+        ];
 
   days.forEach((day, dayIndex) => {
     const daySchedule: ScheduleCell[] = [];
     for (let i = 0; i < periodsPerDay; i++) {
-      const subjectIndex = (dayIndex + i + seed) % subjects.length;
-      const teacherIndex = (dayIndex + i + seed + 1) % teachers.length;
-      const roomIndex = (dayIndex + seed) % rooms.length;
+      const subjectIndex = (dayIndex + i + seed) % availableSubjects.length;
+      const targetSubject = availableSubjects[subjectIndex];
+
+      // Map subject name to a color from our predefined subjects list for visual variety
+      const colorRef =
+        subjects.find((s) => s.name === targetSubject.name) ||
+        subjects[subjectIndex % subjects.length];
 
       daySchedule.push({
-        subject: subjects[subjectIndex].name,
-        teacher: teachers[teacherIndex],
-        room: rooms[roomIndex],
-        color: subjects[subjectIndex].color,
+        subject: targetSubject.name,
+        code: targetSubject.code,
+        teacher: targetSubject.teacher,
+        room: rooms[(dayIndex + seed) % rooms.length],
+        color: colorRef.color,
       });
     }
     schedule[day] = daySchedule;
@@ -164,7 +192,11 @@ export function generateMockOptions(
       name: "ทางเลือก A",
       score: 92,
       level: "ดีมาก",
-      schedule: generateSchedule(constraints.periodsPerDay, 0),
+      schedule: generateSchedule(
+        constraints.periodsPerDay,
+        0,
+        constraints.subjectList
+      ),
       pros: [
         "ไม่มีคาบชนของครูทุกวัน",
         "นักเรียนไม่เรียนเกิน " +
@@ -195,7 +227,11 @@ export function generateMockOptions(
       name: "ทางเลือก B",
       score: 78,
       level: "ดี",
-      schedule: generateSchedule(constraints.periodsPerDay, 2),
+      schedule: generateSchedule(
+        constraints.periodsPerDay,
+        2,
+        constraints.subjectList
+      ),
       pros: [
         "ไม่มีวิชาหนักในคาบเช้า",
         "ครูไม่มีคาบติดกันเกิน 2 คาบ",
@@ -223,7 +259,11 @@ export function generateMockOptions(
       name: "ทางเลือก C",
       score: 65,
       level: "ปานกลาง",
-      schedule: generateSchedule(constraints.periodsPerDay, 4),
+      schedule: generateSchedule(
+        constraints.periodsPerDay,
+        4,
+        constraints.subjectList
+      ),
       pros: [
         "ใช้ห้องเรียนได้ครบทุกห้อง",
         "นักเรียนไม่เรียนเกินกำหนด",

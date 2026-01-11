@@ -382,14 +382,7 @@ export default function EvaluationPage() {
                     {selectedCell.cell.subject}
                   </h2>
                   <Badge variant="outline" className="mt-2">
-                    รหัสวิชา:{" "}
-                    {
-                      /* In a real app, this would come from the subject object */ selectedCell.cell.subject.slice(
-                        0,
-                        2
-                      )
-                    }
-                    101
+                    รหัสวิชา: {selectedCell.cell.code}
                   </Badge>
                 </div>
 

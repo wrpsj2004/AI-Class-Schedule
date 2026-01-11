@@ -57,6 +57,17 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Educational color palette
+        edu: {
+          blue: "hsl(var(--edu-blue))",
+          "blue-light": "hsl(var(--edu-blue-light))",
+          mint: "hsl(var(--edu-mint))",
+          "mint-light": "hsl(var(--edu-mint-light))",
+          orange: "hsl(var(--edu-orange))",
+          "orange-light": "hsl(var(--edu-orange-light))",
+          success: "hsl(var(--edu-success))",
+          warning: "hsl(var(--edu-warning))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

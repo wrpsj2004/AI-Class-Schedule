@@ -1,25 +1,51 @@
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Constraints, ScheduleOption, periodLabels } from '@/data/mockScheduleData';
-import { Calendar, ArrowLeft, CheckCircle, AlertCircle, Lightbulb, Info } from 'lucide-react';
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Constraints,
+  ScheduleOption,
+  periodLabels,
+  ScheduleCell,
+} from "@/data/mockScheduleData";
+import {
+  Calendar,
+  ArrowLeft,
+  CheckCircle,
+  AlertCircle,
+  Lightbulb,
+  Info,
+  User,
+  DoorOpen,
+  Clock3,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-const days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
+const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์"];
 
 export default function EvaluationPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const option = location.state?.option as ScheduleOption | null;
   const constraints = location.state?.constraints as Constraints | null;
+  const [selectedCell, setSelectedCell] = useState<{
+    cell: ScheduleCell;
+    periodIndex: number;
+  } | null>(null);
 
   if (!option || !constraints) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-8 text-center">
           <p className="text-muted-foreground mb-4">ไม่พบข้อมูลตาราง</p>
-          <Button onClick={() => navigate('/')}>กลับหน้าแรก</Button>
+          <Button onClick={() => navigate("/")}>กลับหน้าแรก</Button>
         </Card>
       </div>
     );
@@ -27,19 +53,39 @@ export default function EvaluationPage() {
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'ดีมาก': return 'bg-edu-success text-white';
-      case 'ดี': return 'bg-primary text-white';
-      case 'ปานกลาง': return 'bg-edu-warning text-white';
-      default: return 'bg-muted text-foreground';
+      case "ดีมาก":
+        return "bg-edu-success text-white";
+      case "ดี":
+        return "bg-primary text-white";
+      case "ปานกลาง":
+        return "bg-edu-warning text-white";
+      default:
+        return "bg-muted text-foreground";
     }
   };
 
   const scoreFactors = [
-    { name: 'ไม่มีคาบชน', score: option.scoreBreakdown.noConflicts, max: 30 },
-    { name: 'ภาระครูเหมาะสม', score: option.scoreBreakdown.teacherWorkload, max: 20 },
-    { name: 'ภาระนักเรียนเหมาะสม', score: option.scoreBreakdown.studentWorkload, max: 20 },
-    { name: 'ใช้ห้องเรียนมีประสิทธิภาพ', score: option.scoreBreakdown.roomEfficiency, max: 15 },
-    { name: 'เคารพเงื่อนไขที่กำหนด', score: option.scoreBreakdown.constraintRespect, max: 15 },
+    { name: "ไม่มีคาบชน", score: option.scoreBreakdown.noConflicts, max: 30 },
+    {
+      name: "ภาระครูเหมาะสม",
+      score: option.scoreBreakdown.teacherWorkload,
+      max: 20,
+    },
+    {
+      name: "ภาระนักเรียนเหมาะสม",
+      score: option.scoreBreakdown.studentWorkload,
+      max: 20,
+    },
+    {
+      name: "ใช้ห้องเรียนมีประสิทธิภาพ",
+      score: option.scoreBreakdown.roomEfficiency,
+      max: 15,
+    },
+    {
+      name: "เคารพเงื่อนไขที่กำหนด",
+      score: option.scoreBreakdown.constraintRespect,
+      max: 15,
+    },
   ];
 
   return (
@@ -50,8 +96,12 @@ export default function EvaluationPage() {
           <div className="flex items-center gap-3">
             <Calendar className="h-8 w-8" />
             <div>
-              <h1 className="text-2xl font-bold">ระบบสนับสนุนการตัดสินใจจัดตารางสอน</h1>
-              <p className="text-primary-foreground/80 text-sm">Decision Support System for Class Scheduling</p>
+              <h1 className="text-2xl font-bold">
+                ระบบสนับสนุนการตัดสินใจจัดตารางสอน
+              </h1>
+              <p className="text-primary-foreground/80 text-sm">
+                Decision Support System for Class Scheduling
+              </p>
             </div>
           </div>
         </div>
@@ -61,23 +111,33 @@ export default function EvaluationPage() {
         {/* Step Indicator */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <div className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-full">
-            <span className="w-6 h-6 bg-white text-secondary rounded-full flex items-center justify-center text-sm font-bold">✓</span>
+            <span className="w-6 h-6 bg-white text-secondary rounded-full flex items-center justify-center text-sm font-bold">
+              ✓
+            </span>
             <span className="font-medium">กำหนดเงื่อนไข</span>
           </div>
           <div className="w-8 h-0.5 bg-secondary"></div>
           <div className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-full">
-            <span className="w-6 h-6 bg-white text-secondary rounded-full flex items-center justify-center text-sm font-bold">✓</span>
+            <span className="w-6 h-6 bg-white text-secondary rounded-full flex items-center justify-center text-sm font-bold">
+              ✓
+            </span>
             <span className="font-medium">ดูทางเลือก</span>
           </div>
           <div className="w-8 h-0.5 bg-primary"></div>
           <div className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full">
-            <span className="w-6 h-6 bg-white text-primary rounded-full flex items-center justify-center text-sm font-bold">3</span>
+            <span className="w-6 h-6 bg-white text-primary rounded-full flex items-center justify-center text-sm font-bold">
+              3
+            </span>
             <span className="font-medium">ประเมินผล</span>
           </div>
         </div>
 
         {/* Back Button */}
-        <Button variant="ghost" onClick={() => navigate('/options', { state: { constraints } })} className="mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/options", { state: { constraints } })}
+          className="mb-6"
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           กลับไปดูทางเลือกอื่น
         </Button>
@@ -92,9 +152,15 @@ export default function EvaluationPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center">
-                  <div className="text-5xl font-bold text-primary mb-2">{option.score}</div>
+                  <div className="text-5xl font-bold text-primary mb-2">
+                    {option.score}
+                  </div>
                   <div className="text-muted-foreground mb-3">/100 คะแนน</div>
-                  <Badge className={`text-lg px-4 py-1 ${getLevelColor(option.level)}`}>
+                  <Badge
+                    className={`text-lg px-4 py-1 ${getLevelColor(
+                      option.level
+                    )}`}
+                  >
                     ระดับ{option.level}
                   </Badge>
                 </div>
@@ -111,10 +177,17 @@ export default function EvaluationPage() {
                 {scoreFactors.map((factor) => (
                   <div key={factor.name} className="space-y-1">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{factor.name}</span>
-                      <span className="font-medium">{factor.score}/{factor.max}</span>
+                      <span className="text-muted-foreground">
+                        {factor.name}
+                      </span>
+                      <span className="font-medium">
+                        {factor.score}/{factor.max}
+                      </span>
                     </div>
-                    <Progress value={(factor.score / factor.max) * 100} className="h-2" />
+                    <Progress
+                      value={(factor.score / factor.max) * 100}
+                      className="h-2"
+                    />
                   </div>
                 ))}
               </CardContent>
@@ -133,34 +206,55 @@ export default function EvaluationPage() {
                   <table className="w-full text-sm border-collapse">
                     <thead>
                       <tr className="bg-muted">
-                        <th className="border p-2 text-left font-medium">คาบเรียน</th>
-                        {days.map(day => (
-                          <th key={day} className="border p-2 text-center font-medium">{day}</th>
+                        <th className="border p-2 text-left font-medium">
+                          คาบเรียน
+                        </th>
+                        {days.map((day) => (
+                          <th
+                            key={day}
+                            className="border p-2 text-center font-medium"
+                          >
+                            {day}
+                          </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {Array.from({ length: constraints.periodsPerDay }).map((_, periodIndex) => (
-                        <tr key={periodIndex}>
-                          <td className="border p-2 bg-muted/50 font-medium text-xs">
-                            {periodLabels[periodIndex] || `คาบ ${periodIndex + 1}`}
-                          </td>
-                          {days.map(day => {
-                            const cell = option.schedule[day]?.[periodIndex];
-                            return (
-                              <td key={day} className="border p-1">
-                                {cell && (
-                                  <div className={`p-2 rounded ${cell.color}`}>
-                                    <div className="font-medium text-sm">{cell.subject}</div>
-                                    <div className="text-xs opacity-80">{cell.teacher}</div>
-                                    <div className="text-xs opacity-60">ห้อง {cell.room}</div>
-                                  </div>
-                                )}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
+                      {Array.from({ length: constraints.periodsPerDay }).map(
+                        (_, periodIndex) => (
+                          <tr key={periodIndex}>
+                            <td className="border p-2 bg-muted/50 font-medium text-xs">
+                              {periodLabels[periodIndex] ||
+                                `คาบ ${periodIndex + 1}`}
+                            </td>
+                            {days.map((day) => {
+                              const cell = option.schedule[day]?.[periodIndex];
+                              return (
+                                <td key={day} className="border p-1">
+                                  {cell && (
+                                    <div
+                                      className={`p-2 rounded cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${cell.color}`}
+                                      onClick={() =>
+                                        setSelectedCell({ cell, periodIndex })
+                                      }
+                                    >
+                                      <div className="font-medium text-sm">
+                                        {cell.subject}
+                                      </div>
+                                      <div className="text-xs opacity-80">
+                                        {cell.teacher}
+                                      </div>
+                                      <div className="text-xs opacity-60">
+                                        ห้อง {cell.room}
+                                      </div>
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        )
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -234,9 +328,12 @@ export default function EvaluationPage() {
           <div className="flex items-start gap-4">
             <Info className="h-8 w-8 text-primary flex-shrink-0 mt-1" />
             <div>
-              <h3 className="font-semibold text-lg text-foreground mb-2">ข้อความสำคัญ</h3>
+              <h3 className="font-semibold text-lg text-foreground mb-2">
+                ข้อความสำคัญ
+              </h3>
               <p className="text-foreground">
-                AI ทำหน้าที่เสนอทางเลือกเพื่อสนับสนุนการตัดสินใจ ผู้ใช้งานยังเป็นผู้ตัดสินใจเลือกตารางสุดท้าย
+                AI ทำหน้าที่เสนอทางเลือกเพื่อสนับสนุนการตัดสินใจ
+                ผู้ใช้งานยังเป็นผู้ตัดสินใจเลือกตารางสุดท้าย
                 ระบบนี้ออกแบบมาเพื่อช่วยลดภาระและเพิ่มความโปร่งใสในกระบวนการจัดตารางเรียน
               </p>
             </div>
@@ -245,22 +342,117 @@ export default function EvaluationPage() {
 
         {/* Action Buttons */}
         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="lg"
-            onClick={() => navigate('/options', { state: { constraints } })}
+            onClick={() => navigate("/options", { state: { constraints } })}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             กลับไปดูทางเลือกอื่น
           </Button>
-          <Button 
+          <Button
             size="lg"
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
             className="bg-gradient-to-r from-primary to-secondary"
           >
             เริ่มต้นใหม่
           </Button>
         </div>
+
+        {/* Class Detail Modal */}
+        <Dialog
+          open={!!selectedCell}
+          onOpenChange={(open) => !open && setSelectedCell(null)}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                <div
+                  className={`w-3 h-8 rounded-full ${
+                    selectedCell?.cell.color.split(" ")[0]
+                  }`}
+                ></div>
+                รายละเอียดวิชาเรียน
+              </DialogTitle>
+            </DialogHeader>
+            {selectedCell && (
+              <div className="space-y-6 py-4">
+                <div className="text-center pb-4 border-b">
+                  <h2 className="text-3xl font-bold text-primary">
+                    {selectedCell.cell.subject}
+                  </h2>
+                  <Badge variant="outline" className="mt-2">
+                    รหัสวิชา:{" "}
+                    {
+                      /* In a real app, this would come from the subject object */ selectedCell.cell.subject.slice(
+                        0,
+                        2
+                      )
+                    }
+                    101
+                  </Badge>
+                </div>
+
+                <div className="grid gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-primary/10 p-3 rounded-full text-primary">
+                      <User className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground font-medium">
+                        ครูผู้สอน
+                      </p>
+                      <p className="text-lg font-semibold">
+                        {selectedCell.cell.teacher}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="bg-secondary/10 p-3 rounded-full text-secondary">
+                      <DoorOpen className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground font-medium">
+                        ห้องเรียน
+                      </p>
+                      <p className="text-lg font-semibold">
+                        ห้อง {selectedCell.cell.room}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="bg-accent/10 p-3 rounded-full text-accent">
+                      <Clock3 className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground font-medium">
+                        เวลาเรียน
+                      </p>
+                      <p className="text-lg font-semibold">
+                        {periodLabels[selectedCell.periodIndex]}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-muted p-4 rounded-lg flex items-start gap-2">
+                  <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                  <p className="text-sm text-muted-foreground">
+                    วิชานี้เป็นส่วนหนึ่งของตารางเรียนทางเลือกที่ AI แนะนำ
+                    โดยพิจารณาจากเงื่อนไขความเหมาะสมสูงสุด
+                  </p>
+                </div>
+              </div>
+            )}
+            <div className="flex justify-center">
+              <Button onClick={() => setSelectedCell(null)} className="w-full">
+                ปิดหน้าต่าง
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
